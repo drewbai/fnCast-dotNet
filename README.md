@@ -1,2 +1,194 @@
-# fnCast-dotNet
-This is a modernization of my Python project FnCast, which is a lightweight,  serverless inference pipeline for event-driven ML workloads.
+# FnCast (.NET 8)
+
+FnCast-dotNet is a clean, modular, cloud-ready C# implementation of an event-driven inference pipeline. It modernizes the original Python FnCast design using .NET 8 and Clean Architecture.
+
+## Architecture
+
+- **Domain**: Core models (`InferenceEvent`, `ValidationResult`, `InferenceResult`). No external dependencies.
+- **Application**: Interfaces and orchestrator (`IPipelineOrchestrator`) coordinating stages via DI and async/await.
+- **Infrastructure**: Concrete implementations for validation, metadata extraction, inference, and output routing.
+- **Api**: Minimal API ingestion endpoint, DI configuration, logging, and app settings.
+- **Tests**: xUnit tests for the orchestrator and validation/inference paths.
+
+### Diagrams
+See detailed flowcharts in [docs/diagrams.md](docs/diagrams.md). A condensed Minimal API flow:
+
+```mermaid
+flowchart TD
+	A[HTTP /ingest] --> B[InferenceEvent]
+	B --> C[Orchestrator]
+	C --> D[Validate]
+	D -->|Invalid| E[Route errors]
+	D -->|Valid| F[Extract]
+	F --> G[Execute]
+	G --> H[Route output]
+```
+
+### Pipeline Stages
+1. Event ingestion (HTTP POST `/ingest`)
+2. Payload validation (JSON well-formed check when content type includes `json`)
+3. Metadata extraction (basic fields like `eventId`, `timestamp`, optional `correlationId`, `source`)
+4. Inference execution (placeholder text transform: Uppercase/Lowercase/Echo)
+5. Output routing (logging)
+
+## Minimal APIs vs Azure Functions
+
+This starter uses **Minimal APIs** for simplicity, portability, and rapid local iteration:
+- Pros: Fast startup, fewer moving parts, easy to containerize and run anywhere.
+- Cons: You implement triggers/endpoints yourself; platform-native bindings not included by default.
+
+If you prefer serverless triggers and platform bindings, swapping `Api` for **Azure Functions** is straightforward: reuse Domain/Application/Infrastructure and wire functions to call `IPipelineOrchestrator`. Functions give native triggers (HTTP, Queue, Event Grid) and scaling. Minimal APIs are great for cloud-agnostic deployments or when you want a simple HTTP surface.
+
+## Getting Started
+
+### Prerequisites
+- .NET 8 SDK
+
+### Build & Test
+```bash
+dotnet build FnCast.sln
+dotnet test FnCast.sln
+```
+
+### Run the API
+```bash
+dotnet run --project src/Api/FnCast.Api.csproj
+```
+
+Send an event:
+```bash
+curl -sS http://localhost:5097/ingest \
+	-H "Content-Type: application/json" \
+	-d '{"payload":"hello world","contentType":"text/plain"}'
+```
+
+Configuration in [src/Api/appsettings.json](src/Api/appsettings.json):
+- `Inference.Mode`: `Uppercase` | `Lowercase` | `Echo`
+- Logging levels via `Logging`
+
+### Run with Docker
+
+Build and run the API container:
+```bash
+docker build -f src/Api/Dockerfile -t fncast-dotnet .
+docker run --rm -p 8080:8080 fncast-dotnet
+```
+
+Then POST to `http://localhost:8080/ingest` as above.
+
+### Azure Functions (optional)
+
+An Azure Functions (isolated worker) project is provided in [src/Functions](src/Functions) with:
+- `HttpIngestFunction` (HTTP POST trigger) and `QueueIngestFunction` (Azure Storage Queue trigger).
+- DI and configuration in [src/Functions/Program.cs](src/Functions/Program.cs) using the same orchestrator and infrastructure.
+- Local settings in [src/Functions/local.settings.json](src/Functions/local.settings.json) and function host config in [src/Functions/host.json](src/Functions/host.json).
+
+To run locally, install Azure Functions Core Tools and start:
+```bash
+func start --csharp
+```
+Note: Core Tools is required for local execution; deployment targets can use Azure Functions with the same code.
+
+## CI
+## Deploy (Azure + Bicep)
+
+Infra as code is provided in [infra/azure/main.bicep](infra/azure/main.bicep) with parameters in [infra/azure/main.bicepparam](infra/azure/main.bicepparam).
+
+### Provision resources
+```bash
+# create a resource group
+az group create -n fncast-dotnet-rg -l eastus
+
+# deploy bicep (edit baseName/location as needed)
+az deployment group create \
+	-g fncast-dotnet-rg \
+	-f infra/azure/main.bicep \
+	-p baseName=fncastdotnet location=eastus
+```
+
+Outputs include the function app name and (optional) Event Grid topic info.
+
+### Wire Event Grid to the function
+The `EventGridIngest` function uses an Event Grid trigger. After deploying the function app code (e.g., `func azure functionapp publish <appName>` or CI/CD), create a subscription pointing to the function endpoint:
+
+```bash
+# get function key (requires Azure CLI extension support)
+az functionapp function keys list \
+	--function-name EventGridIngest \
+	--name <functionAppName> \
+	--resource-group fncast-dotnet-rg
+
+# create an event subscription to the custom topic
+az eventgrid event-subscription create \
+	--source-resource-id \
+		"/subscriptions/<subId>/resourceGroups/fncast-dotnet-rg/providers/Microsoft.EventGrid/topics/<topicName>" \
+	--name fncast-eg-sub \
+	--endpoint \
+		"https://<functionAppName>.azurewebsites.net/runtime/webhooks/EventGrid?functionName=EventGridIngest&code=<functionKey>"
+```
+
+Alternatively, publish events to the topic and verify the function logs to confirm end-to-end ingestion.
+
+GitHub Actions workflow at [.github/workflows/ci.yml](.github/workflows/ci.yml) runs restore, build, and tests on Ubuntu and Windows; it also validates the Dockerfile by building the image.
+
+### Deploy Functions via GitHub Actions
+
+Workflow [.github/workflows/deploy-functions.yml](.github/workflows/deploy-functions.yml) deploys the Functions app on push to `main` when files under `src/Functions` change.
+
+Setup required:
+- Create an Azure Function App (see Bicep section) and note its name.
+- Add repository variable `AZURE_FUNCTIONAPP_NAME` with the Function App name.
+- Add repository secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` with the publish profile (download from the Function App in Azure Portal).
+
+The workflow builds and publishes `src/Functions` and deploys the package to Azure.
+
+## Folder Structure
+
+```
+src/
+	Api/
+		Contracts/
+			IngestRequest.cs
+			IngestResponse.cs
+		Program.cs
+		FnCast.Api.csproj
+		appsettings.json
+	Application/
+		Abstractions/
+			IEventValidator.cs
+			IMetadataExtractor.cs
+			IInferenceExecutor.cs
+			IOutputRouter.cs
+			IPipelineOrchestrator.cs
+		PipelineOrchestrator.cs
+		FnCast.Application.csproj
+	Domain/
+		Models/
+			InferenceEvent.cs
+			ValidationResult.cs
+			InferenceResult.cs
+		FnCast.Domain.csproj
+	Infrastructure/
+		Validation/JsonEventValidator.cs
+		Metadata/BasicMetadataExtractor.cs
+		Inference/PlaceholderInferenceExecutor.cs
+		Routing/LoggingOutputRouter.cs
+		Options/InferenceOptions.cs
+		FnCast.Infrastructure.csproj
+tests/
+	FnCast.Tests/
+		PipelineOrchestratorTests.cs
+		FnCast.Tests.csproj
+FnCast.sln
+```
+
+## Extensibility
+
+This design supports future growth by isolating concerns behind interfaces:
+- Swap inference engines by implementing `IInferenceExecutor` (e.g., ONNX, Torch, Azure/Foundry endpoints).
+- Add new validators or metadata extractors without touching orchestrator.
+- Route outputs to different sinks by implementing `IOutputRouter` (blob storage, queues, databases).
+- Replace Minimal API with Azure Functions or other hosts while reusing Domain/Application/Infrastructure unchanged.
+- Configuration is bound to options (`InferenceOptions`) enabling feature flags and tunables.
+
+All public classes and methods include XML documentation comments to aid IDE/tooling and future maintainers.

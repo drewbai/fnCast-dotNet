@@ -52,3 +52,21 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+ 
+# VS/VS Code
+.vs/
+.vscode/
+
+# User settings
+*.user
+*.suo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Published outputs
+publishedFunctions/
+
+# Dotnet artifacts
+*.sln.DotSettings.user

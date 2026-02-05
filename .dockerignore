@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.git/
+**/.gitignore
+**/TestResults/
+**/*.user
+**/*.suo
+**/*.swp
+**/*.tmp
+**/*.log
+**/.DS_Store

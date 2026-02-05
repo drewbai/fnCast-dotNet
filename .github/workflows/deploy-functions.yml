@@ -1,0 +1,36 @@
+name: Deploy Functions
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/Functions/**'
+      - '.github/workflows/deploy-functions.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore FnCast.sln
+
+      - name: Build Functions
+        run: dotnet build src/Functions/FnCast.Functions.csproj --configuration Release --no-restore
+
+      - name: Publish Functions
+        run: dotnet publish src/Functions/FnCast.Functions.csproj --configuration Release -o ./publishedFunctions --no-build
+
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ vars.AZURE_FUNCTIONAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: './publishedFunctions'
