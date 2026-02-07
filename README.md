@@ -46,6 +46,18 @@ If you prefer serverless triggers and platform bindings, swapping `Api` for **Az
 ### Prerequisites
 - .NET 8 SDK
 
+### Presentation Demo (one-liner)
+Run the end-to-end demo script in [docs/scripts/demo-presentation.ps1](docs/scripts/demo-presentation.ps1):
+
+- PowerShell (local API + Functions):
+	```powershell
+	./docs/scripts/demo-presentation.ps1 -Mode all -ApiBaseUrl http://localhost:5097 -FunctionsBaseUrl http://localhost:7071
+	```
+- Include Azure Event Grid + Queue (optional):
+	```powershell
+	./docs/scripts/demo-presentation.ps1 -Mode all -ApiBaseUrl http://localhost:5097 -FunctionsBaseUrl http://localhost:7071 -ResourceGroup fncast-dotnet-rg -TopicName fncastdotnet-topic -StorageAccountName <account>
+	```
+
 ### Build & Test
 ```bash
 dotnet build FnCast.sln
