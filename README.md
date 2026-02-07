@@ -193,6 +193,36 @@ az eventgrid event-subscription create \
 ```
 
 Alternatively, publish events to the topic and verify the function logs to confirm end-to-end ingestion.
+### Producer Scripts (Event Grid & Queue)
+
+Use the helper scripts in [docs/scripts](docs/scripts):
+- Event Grid (publish to custom topic):
+	- PowerShell:
+		```powershell
+		./docs/scripts/publish-eventgrid.ps1 -ResourceGroup fncast-dotnet-rg -TopicName fncastdotnet-topic -Subject demo -Data '{"message":"hello"}'
+		```
+	- Bash:
+		```bash
+		RESOURCE_GROUP=fncast-dotnet-rg TOPIC_NAME=fncastdotnet-topic SUBJECT=demo DATA='{ "message": "hello" }' ./docs/scripts/publish-eventgrid.sh
+		```
+- Storage Queue (send message to `fncast-events`):
+	- PowerShell:
+		```powershell
+		./docs/scripts/publish-queue-message.ps1 -ResourceGroup fncast-dotnet-rg -StorageAccountName <name> -QueueName fncast-events -Message "hello"
+		```
+	- Bash:
+		```bash
+		RESOURCE_GROUP=fncast-dotnet-rg STORAGE_ACCOUNT_NAME=<name> QUEUE_NAME=fncast-events MESSAGE='hello' ./docs/scripts/publish-queue-message.sh
+		```
+
+Tip: You can also set `CONNECTION_STRING` directly (instead of RG+account) for queue scripts.
+
+#### Troubleshooting
+- Azure CLI: Ensure `az` is installed and you're logged in (`az login`). For Event Grid commands, install the extension: `az extension add --name eventgrid`.
+- Permissions: Event Grid publish requires `EventGrid Data Sender` on the topic (or `Contributor` on the resource group). Storage Queue operations need appropriate RBAC or a valid `CONNECTION_STRING`.
+- Function Keys: If `az functionapp function keys list` fails, retrieve the function key from the Azure Portal under your Function App → `EventGridIngest` → Keys.
+- Local Queues: For local testing, use Azurite. Configure `AzureWebJobsStorage` in [src/Functions/local.settings.json](src/Functions/local.settings.json) and ensure the `QueueIngestFunction` listens on `fncast-events`.
+- Topic/Endpoint: Verify `TopicName` and resource group match your deployment outputs from the Bicep deployment. Use `az eventgrid topic show -g <rg> -n <topic>` to confirm the endpoint.
 
 ## Folder Structure
 
