@@ -193,6 +193,46 @@ az eventgrid event-subscription create \
 ```
 
 Alternatively, publish events to the topic and verify the function logs to confirm end-to-end ingestion.
+#### Quick Wire-Up (using deployment outputs)
+If you captured your deployment name, you can query outputs and create the Event Grid subscription quickly:
+
+```bash
+# replace with your resource group and deployment name
+RG=fncast-dotnet-rg
+DEPLOYMENT_NAME=<your-deployment-name>
+
+# get outputs (requires jq)
+FUNC_APP=$(az deployment group show -g "$RG" -n "$DEPLOYMENT_NAME" --query properties.outputs.functionAppName.value -o tsv)
+TOPIC_NAME=$(az deployment group show -g "$RG" -n "$DEPLOYMENT_NAME" --query properties.outputs.eventGridTopicName.value -o tsv)
+TOPIC_ID=$(az eventgrid topic show -g "$RG" -n "$TOPIC_NAME" --query id -o tsv)
+
+# get function key
+FUNC_KEY=$(az functionapp function keys list --function-name EventGridIngest --name "$FUNC_APP" --resource-group "$RG" --query default -o tsv)
+
+# create subscription
+az eventgrid event-subscription create \
+	--source-resource-id "$TOPIC_ID" \
+	--name fncast-eg-sub \
+	--endpoint "https://$FUNC_APP.azurewebsites.net/runtime/webhooks/EventGrid?functionName=EventGridIngest&code=$FUNC_KEY"
+```
+
+If you did not save the deployment name, you can still retrieve the topic and function app names from the Azure Portal or via `az` and use the commands above.
+
+#### Local Queues (Azurite)
+For local testing of `QueueIngestFunction`, use Azurite and set `AzureWebJobsStorage` to `UseDevelopmentStorage=true` in [src/Functions/local.settings.json](src/Functions/local.settings.json).
+
+```bash
+# install azurite (node-based)
+npm install -g azurite
+
+# start azurite locally
+azurite -l .azurite --silent --skipApiVersionCheck
+
+# queue name used by the function
+echo "Use queue: fncast-events"
+```
+
+Learn more: https://learn.microsoft.com/azure/storage/common/storage-use-azurite
 ### Producer Scripts (Event Grid & Queue)
 
 Use the helper scripts in [docs/scripts](docs/scripts):
