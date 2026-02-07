@@ -137,6 +137,9 @@ func start --csharp
 ```
 Note: Core Tools is required for local execution; deployment targets can use Azure Functions with the same code.
 
+#### One-Click Requests for Functions
+- Use [docs/requests-functions.http](docs/requests-functions.http) (REST Client) to call `HttpIngest` locally at `http://localhost:7071/api/HttpIngest`.
+
 ## CI
 
 GitHub Actions workflow at [.github/workflows/ci.yml](.github/workflows/ci.yml) runs restore, build, and tests on Ubuntu and Windows; it also validates the Dockerfile by building the image.

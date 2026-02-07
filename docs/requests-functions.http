@@ -1,0 +1,23 @@
+### FnCast Azure Functions HTTP (VS Code REST Client)
+# Requires the 'REST Client' extension by Huachao Mao.
+# Run locally with: func start --csharp
+
+@baseUrl = http://localhost:7071
+
+### HttpIngest (text/plain)
+POST {{baseUrl}}/api/HttpIngest
+Content-Type: application/json
+
+{
+  "payload": "hello from functions",
+  "contentType": "text/plain"
+}
+
+### HttpIngest (application/json)
+POST {{baseUrl}}/api/HttpIngest
+Content-Type: application/json
+
+{
+  "payload": "{\"correlationId\":\"xyz789\",\"source\":\"functions-demo\"}",
+  "contentType": "application/json"
+}
