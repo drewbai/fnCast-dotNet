@@ -1,5 +1,13 @@
 # FnCast (.NET 8)
 
+[![Quick Demo](https://img.shields.io/badge/Quick%20Demo-run-blue?logo=powershell)](#presentation-demo-one-liner)
+
+Quick run:
+
+```powershell
+./docs/scripts/demo-presentation.ps1 -Mode all -ApiBaseUrl http://localhost:5097 -FunctionsBaseUrl http://localhost:7071
+```
+
 ![CI](https://github.com/drewbai/fnCast-dotNet/actions/workflows/build.yml/badge.svg)
 
 FnCast-dotNet is a clean, modular, cloud-ready C# implementation of an event-driven inference pipeline. It modernizes the original Python FnCast design using .NET 8 and Clean Architecture.
