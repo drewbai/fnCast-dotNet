@@ -1,0 +1,31 @@
+### FnCast Minimal API Requests (VS Code REST Client)
+# Requires the 'REST Client' extension by Huachao Mao.
+
+@baseUrl = http://localhost:5097
+
+### Health
+GET {{baseUrl}}/health
+
+### Ingest (text/plain)
+POST {{baseUrl}}/ingest
+Content-Type: application/json
+
+{
+  "payload": "hello world",
+  "contentType": "text/plain"
+}
+
+### Ingest (application/json)
+POST {{baseUrl}}/ingest
+Content-Type: application/json
+
+{
+  "payload": "{\"correlationId\":\"abc123\",\"source\":\"demo\"}",
+  "contentType": "application/json"
+}
+
+### Switch to Docker port
+@baseUrl = http://localhost:8080
+
+### Health (Docker)
+GET {{baseUrl}}/health

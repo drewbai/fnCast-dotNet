@@ -1,5 +1,7 @@
 # FnCast (.NET 8)
 
+![CI](https://github.com/drewbai/fnCast-dotNet/actions/workflows/build.yml/badge.svg)
+
 FnCast-dotNet is a clean, modular, cloud-ready C# implementation of an event-driven inference pipeline. It modernizes the original Python FnCast design using .NET 8 and Clean Architecture.
 
 ## Architecture
@@ -62,9 +64,37 @@ curl -sS http://localhost:5097/ingest \
 	-d '{"payload":"hello world","contentType":"text/plain"}'
 ```
 
+Note: The port may vary when using `dotnet run`. To fix a port, set `ASPNETCORE_URLS`:
+- Bash:
+	```bash
+	ASPNETCORE_URLS=http://localhost:5097 dotnet run --project src/Api/FnCast.Api.csproj
+	```
+- PowerShell:
+	```powershell
+	$env:ASPNETCORE_URLS = 'http://localhost:5097'
+	dotnet run --project src/Api/FnCast.Api.csproj
+	```
+
 Configuration in [src/Api/appsettings.json](src/Api/appsettings.json):
 - `Inference.Mode`: `Uppercase` | `Lowercase` | `Echo`
 - Logging levels via `Logging`
+
+### Quick Start (Windows curl.exe)
+
+- PowerShell (ensure you call `curl.exe` and not the alias):
+	```powershell
+	$env:ASPNETCORE_URLS = 'http://localhost:5097'
+	dotnet run --project src/Api/FnCast.Api.csproj
+	# new shell
+	curl.exe -sS "http://localhost:5097/ingest" -H "Content-Type: application/json" -d "{\"payload\":\"hello world\",\"contentType\":\"text/plain\"}"
+	```
+- CMD:
+	```cmd
+	set ASPNETCORE_URLS=http://localhost:5097
+	dotnet run --project src\Api\FnCast.Api.csproj
+	:: new window
+	curl.exe -sS "http://localhost:5097/ingest" -H "Content-Type: application/json" -d "{\"payload\":\"hello world\",\"contentType\":\"text/plain\"}"
+	```
 
 ### Run with Docker
 
@@ -75,6 +105,24 @@ docker run --rm -p 8080:8080 fncast-dotnet
 ```
 
 Then POST to `http://localhost:8080/ingest` as above.
+
+### Postman Collection
+
+Import the collection at [docs/postman/fncast.postman_collection.json](docs/postman/fncast.postman_collection.json) and set the `baseUrl` variable to your running host (e.g., `http://localhost:5097` or `http://localhost:8080`). It includes:
+- `GET /health`
+- `POST /ingest` examples for `text/plain` and `application/json` payloads.
+
+### One-Click Requests (VS Code)
+
+- Use [docs/requests.http](docs/requests.http) with the REST Client extension (recommended via [.vscode/extensions.json](.vscode/extensions.json)).
+- The file defines `@baseUrl` you can switch between API (`5097`) and Docker (`8080`).
+
+### .env Example
+
+- See [.env.example](.env.example) for suggested local environment variables:
+	- `ASPNETCORE_URLS=http://localhost:5097` to fix the port
+	- `Inference__Mode=Uppercase` to configure the inference placeholder
+- Note: .NET does not auto-load `.env`; set environment variables in your shell or configure in appsettings.
 
 ### Azure Functions (optional)
 
@@ -90,6 +138,20 @@ func start --csharp
 Note: Core Tools is required for local execution; deployment targets can use Azure Functions with the same code.
 
 ## CI
+
+GitHub Actions workflow at [.github/workflows/ci.yml](.github/workflows/ci.yml) runs restore, build, and tests on Ubuntu and Windows; it also validates the Dockerfile by building the image.
+
+### Deploy Functions via GitHub Actions
+
+Workflow [.github/workflows/deploy-functions.yml](.github/workflows/deploy-functions.yml) deploys the Functions app on push to `main` when files under `src/Functions` change.
+
+Setup required:
+- Create an Azure Function App (see Bicep section) and note its name.
+- Add repository variable `AZURE_FUNCTIONAPP_NAME` with the Function App name.
+- Add repository secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` with the publish profile (download from the Function App in Azure Portal).
+
+The workflow builds and publishes `src/Functions` and deploys the package to Azure.
+
 ## Deploy (Azure + Bicep)
 
 Infra as code is provided in [infra/azure/main.bicep](infra/azure/main.bicep) with parameters in [infra/azure/main.bicepparam](infra/azure/main.bicepparam).
@@ -128,19 +190,6 @@ az eventgrid event-subscription create \
 ```
 
 Alternatively, publish events to the topic and verify the function logs to confirm end-to-end ingestion.
-
-GitHub Actions workflow at [.github/workflows/ci.yml](.github/workflows/ci.yml) runs restore, build, and tests on Ubuntu and Windows; it also validates the Dockerfile by building the image.
-
-### Deploy Functions via GitHub Actions
-
-Workflow [.github/workflows/deploy-functions.yml](.github/workflows/deploy-functions.yml) deploys the Functions app on push to `main` when files under `src/Functions` change.
-
-Setup required:
-- Create an Azure Function App (see Bicep section) and note its name.
-- Add repository variable `AZURE_FUNCTIONAPP_NAME` with the Function App name.
-- Add repository secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` with the publish profile (download from the Function App in Azure Portal).
-
-The workflow builds and publishes `src/Functions` and deploys the package to Azure.
 
 ## Folder Structure
 

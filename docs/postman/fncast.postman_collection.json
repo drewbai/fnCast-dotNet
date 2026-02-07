@@ -1,0 +1,47 @@
+{
+  "info": {
+    "name": "FnCast .NET",
+    "description": "Quick-start requests for FnCast-dotNet Minimal API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5097" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Ingest (text/plain)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"payload\":\"hello world\",\"contentType\":\"text/plain\"}"
+        },
+        "url": "{{baseUrl}}/ingest"
+      }
+    },
+    {
+      "name": "Ingest (application/json)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"payload\":\"{\\\"correlationId\\\":\\\"abc123\\\",\\\"source\\\":\\\"demo\\\"}\",\"contentType\":\"application/json\"}"
+        },
+        "url": "{{baseUrl}}/ingest"
+      }
+    }
+  ]
+}

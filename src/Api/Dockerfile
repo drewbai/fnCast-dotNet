@@ -2,15 +2,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# copy sln and project files first for better layer caching
-COPY FnCast.sln ./
+# copy project files first for better layer caching
 COPY src/Api/FnCast.Api.csproj src/Api/
 COPY src/Application/FnCast.Application.csproj src/Application/
 COPY src/Infrastructure/FnCast.Infrastructure.csproj src/Infrastructure/
 COPY src/Domain/FnCast.Domain.csproj src/Domain/
-COPY tests/FnCast.Tests/FnCast.Tests.csproj tests/FnCast.Tests/
 
-RUN dotnet restore FnCast.sln
+RUN dotnet restore src/Api/FnCast.Api.csproj
 
 # copy rest of the source
 COPY . .
