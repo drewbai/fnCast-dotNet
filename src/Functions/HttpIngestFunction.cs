@@ -31,7 +31,7 @@ namespace FnCast.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req,
             FunctionContext context)
         {
-            var body = await req.ReadAsStringAsync();
+            var body = await req.ReadAsStringAsync() ?? string.Empty;
             var contentType = req.Headers.TryGetValues("Content-Type", out var values) ? string.Join(",", values) : "application/json";
             var evt = new InferenceEvent(null, null, body, contentType);
 

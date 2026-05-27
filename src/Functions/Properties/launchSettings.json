@@ -1,9 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "FnCast.Functions": {
-      "commandName": "Project",
+    "func start": {
+      "commandName": "Executable",
+      "executablePath": "func",
       "commandLineArgs": "host start --port 7071 --pause-on-error",
+      "workingDirectory": "$(ProjectDir)",
       "environmentVariables": {
         "AZURE_FUNCTIONS_ENVIRONMENT": "Development"
       }
