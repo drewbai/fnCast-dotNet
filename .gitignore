@@ -55,6 +55,7 @@ nunit-*.xml
  
 # VS/VS Code
 .vs/
+.vscode/
 
 # User settings
 *.user
