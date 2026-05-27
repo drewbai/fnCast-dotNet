@@ -55,7 +55,6 @@ nunit-*.xml
  
 # VS/VS Code
 .vs/
-.vscode/
 
 # User settings
 *.user
@@ -64,6 +63,9 @@ nunit-*.xml
 # OS files
 .DS_Store
 Thumbs.db
+
+# Azure Functions local secrets — never commit real connection strings
+local.settings.json
 
 # Published outputs
 publishedFunctions/

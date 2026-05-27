@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "FnCast.Functions": {
+      "commandName": "Project",
+      "commandLineArgs": "host start --port 7071 --pause-on-error",
+      "environmentVariables": {
+        "AZURE_FUNCTIONS_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
