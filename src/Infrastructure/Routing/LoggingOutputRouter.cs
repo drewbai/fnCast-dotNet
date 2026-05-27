@@ -11,6 +11,14 @@ namespace FnCast.Infrastructure.Routing
     /// </summary>
     public sealed class LoggingOutputRouter : IOutputRouter
     {
+        private static readonly Action<ILogger, string, string?, Exception?> LogSuccess =
+            LoggerMessage.Define<string, string?>(LogLevel.Information, new EventId(1, "InferenceSucceeded"),
+                "Inference succeeded for {EventId}: {Output}");
+
+        private static readonly Action<ILogger, string, string, Exception?> LogFailure =
+            LoggerMessage.Define<string, string>(LogLevel.Warning, new EventId(2, "InferenceFailed"),
+                "Inference failed for {EventId}: {Errors}");
+
         private readonly ILogger<LoggingOutputRouter> _logger;
 
         /// <summary>
@@ -26,11 +34,11 @@ namespace FnCast.Infrastructure.Routing
         {
             if (result.Success)
             {
-                _logger.LogInformation("Inference succeeded for {EventId}: {Output}", evt.Id, result.Output);
+                LogSuccess(_logger, evt.Id, result.Output, null);
             }
             else
             {
-                _logger.LogWarning("Inference failed for {EventId}: {Errors}", evt.Id, string.Join("; ", result.Errors));
+                LogFailure(_logger, evt.Id, string.Join("; ", result.Errors), null);
             }
 
             return Task.CompletedTask;

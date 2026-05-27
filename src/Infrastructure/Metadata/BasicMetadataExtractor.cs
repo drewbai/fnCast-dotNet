@@ -18,7 +18,7 @@ namespace FnCast.Infrastructure.Metadata
             var meta = new Dictionary<string, string>
             {
                 ["eventId"] = evt.Id,
-                ["timestamp"] = evt.Timestamp.ToUnixTimeMilliseconds().ToString()
+                ["timestamp"] = evt.Timestamp.ToUnixTimeMilliseconds().ToString(System.Globalization.CultureInfo.InvariantCulture)
             };
 
             if (evt.ContentType?.Contains("json", System.StringComparison.OrdinalIgnoreCase) == true)

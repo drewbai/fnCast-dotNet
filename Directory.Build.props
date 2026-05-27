@@ -1,0 +1,11 @@
+<Project>
+
+  <PropertyGroup>
+	<!-- Enable all .NET SDK built-in analyzers (CA rules) at build time.        -->
+	<!-- The SDK ships NetAnalyzers 10.x; no NuGet package reference is needed.  -->
+	<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	<AnalysisLevel>latest-recommended</AnalysisLevel>
+	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+</Project>

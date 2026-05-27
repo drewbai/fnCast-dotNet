@@ -32,7 +32,7 @@ namespace FnCast.Tests
             var orchestrator = provider.GetRequiredService<IPipelineOrchestrator>();
 
             var evt = new InferenceEvent(null, null, rawPayload: "hello", contentType: "text/plain");
-            var result = await orchestrator.ProcessAsync(evt);
+            var result = await orchestrator.ProcessAsync(evt, TestContext.Current.CancellationToken);
 
             Assert.True(result.Success);
             Assert.Equal("HELLO", result.Output);
@@ -55,7 +55,7 @@ namespace FnCast.Tests
             var orchestrator = provider.GetRequiredService<IPipelineOrchestrator>();
 
             var evt = new InferenceEvent(null, null, rawPayload: "{ invalid json ", contentType: "application/json");
-            var result = await orchestrator.ProcessAsync(evt);
+            var result = await orchestrator.ProcessAsync(evt, TestContext.Current.CancellationToken);
 
             Assert.False(result.Success);
             Assert.NotEmpty(result.Errors);

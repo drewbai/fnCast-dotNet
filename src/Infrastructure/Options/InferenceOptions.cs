@@ -16,8 +16,13 @@ namespace FnCast.Infrastructure.Options
     /// </summary>
     public enum InferenceMode
     {
+        /// <summary>Transforms the payload to uppercase.</summary>
         Uppercase,
+
+        /// <summary>Transforms the payload to lowercase.</summary>
         Lowercase,
+
+        /// <summary>Returns the payload unchanged.</summary>
         Echo
     }
 }
